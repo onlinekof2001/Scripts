@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sysb='/usr/local/bin/sysbench'
+connf='/tmp/db_mapping_string'
 
 function timestamp {
     date +'%b %d %H:%M:%S'
@@ -15,22 +16,16 @@ function log {
     fi
 }
 
+# Choose DB type to do the benchmark.
 read -p "Choose SQL drive [ mysql | pgsql ]" sqldrv
 
-if [ $sqldrv = 'mysql' ]
-then
-hst='mysql5725.cdncaqbxqkyv.rds.cn-north-1.amazonaws.com.cn'
-prt='3306'
-usr='mysqladmin'
-dbn='performance'
-pwd=$usr
-else
-hst='postgresqlbench.postgres.database.chinacloudapi.cn'
-prt='5432'
-usr='pgsqladmin@'
-dbn='performance'
-pwd='Decathlon2018'
-fi
+# Read database connection strings from connection file. the file format should be host:port:user:secretkey:dbname
+conns=($(tr ':' ' ' < ${connf}))
+hst=${conns[0]}
+prt=${conns[1]}
+usr=${conns[2]}
+dbn=${conns[3]}
+pwd=${conns[4]}
 
 function init_sysbench {
     mysqlhst=$1
@@ -59,7 +54,7 @@ function run_sysbench {
     mysqldbn=$5
     mysqltrd=$6
     mysqlrwo=$7
-	mysqltim=$8
+    mysqltim=$8
     if [ $sqldrv = 'mysql' ]
     then
     $sysb --mysql-host=${mysqlhst} --mysql-port=${mysqlprt} --mysql-user=${mysqlusr} --mysql-password=${mysqlpwd} --mysql-db=${mysqldbn} --threads=${mysqltrd} --time=${mysqltim} --thread-stack-size=128k --percentile=0 ${mysqlrwo} run
@@ -84,7 +79,7 @@ read -p "Max concurrency threads [ 240 - 1260 ]: " conns
 thrd=$conns
 
 time=600
-for ((i=3;i>0;i++))
+for ((i=1;i<4;i++))
 do
   last_time=$((${i}*${time}))
   run_sysbench ${hst} ${prt} ${usr} ${pwd} ${dbn} ${thrd} ${rw_type} ${last_time} | tee -a ${LOGFILE}
