@@ -79,9 +79,12 @@ read -p "Max concurrency threads [ 240 - 1260 ]: " conns
 thrd=$conns
 
 time=600
-for ((i=1;i<4;i++))
-do
-  last_time=$((${i}*${time}))
-  run_sysbench ${hst} ${prt} ${usr} ${pwd} ${dbn} ${thrd} ${rw_type} ${last_time} | tee -a ${LOGFILE}
-  sleep $((${time}/10))s
-done
+while [ ${thrd} -le '240' ] ; do
+    for ((i=1;i<4;i++))
+    do 
+       last_time=$((${i}*${time}))
+       run_sysbench ${hst} ${prt} ${usr} ${pwd} ${dbn} ${thrd} ${rw_type} ${last_time} | tee -a ${LOGFILE}
+       sleep $((${time}/10))s
+    done
+    thrd = $(let ${thrd} += 80)
+done 
