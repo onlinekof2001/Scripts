@@ -84,7 +84,8 @@ while [ ${thrd} -le '240' ] ; do
     do 
        last_time=$((${i}*${time}))
        run_sysbench ${hst} ${prt} ${usr} ${pwd} ${dbn} ${thrd} ${rw_type} ${last_time} | tee -a ${LOGFILE}
-       sleep $((${time}/10))s
+       sleep $((${time}/10))
     done
-    thrd = $(let ${thrd} += 80)
-done 
+    let thrd+=80
+    sleep $((${time}/5))
+done
